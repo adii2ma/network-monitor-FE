@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     if (!ip) {
       return NextResponse.json({ error: "IP address is required" }, { status: 400 });
     }
-    const backendRes = await fetch(`http://localhost:8080/api/delete/${encodeURIComponent(ip)}`, {
+    const backendRes = await fetch(`http://localhost:8080/delete?ip=${encodeURIComponent(ip)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
