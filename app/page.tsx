@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 interface DeviceStatus {
   online: string;
   last_seen: string;
+  location: string;
 }
 
 interface StatusData {
@@ -72,22 +73,27 @@ export default function Home() {
           {!loading && !error && Object.keys(devices).length > 0 && (
             <div className="grid gap-4">
               {Object.entries(devices).map(([ip, status]) => (
-                <div key={ip} className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-lg">{ip}</h3>
-                    <p className="text-sm text-gray-600">
-                      Last seen: {formatLastSeen(status.last_seen)}
-                    </p>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`inline-block w-3 h-3 rounded-full mr-2 ${
-                      status.online === "true" ? "bg-green-500" : "bg-red-500"
-                    }`}></span>
-                    <span className={`font-medium ${
-                      status.online === "true" ? "text-green-600" : "text-red-600"
-                    }`}>
-                      {status.online === "true" ? "Online" : "Offline"}
-                    </span>
+                <div key={ip} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{ip}</h3>
+                      <p className="text-sm text-gray-600">
+                        Last seen: {formatLastSeen(status.last_seen)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Location: {status.location || "Location not set"}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <span className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                        status.online === "true" ? "bg-green-500" : "bg-red-500"
+                      }`}></span>
+                      <span className={`font-medium ${
+                        status.online === "true" ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {status.online === "true" ? "Online" : "Offline"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}

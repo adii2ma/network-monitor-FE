@@ -2,16 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { ip } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const ip = searchParams.get('ip');
+    const location = searchParams.get('location');
+    
     if (!ip) {
       return NextResponse.json({ error: "IP address is required" }, { status: 400 });
     }
-    const backendRes = await fetch(`http://localhost:8080/add?ip=${encodeURIComponent(ip)}`, {
+    if (!location) {
+      return NextResponse.json({ error: "Location is required" }, { status: 400 });
+    }
+    
+    const backendRes = await fetch(`http://localhost:8080/add?ip=${encodeURIComponent(ip)}&location=${encodeURIComponent(location)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
-    const data = await backendRes.json();
-    return NextResponse.json(data, { status: backendRes.status });
+    
+    if (backendRes.ok) {
+      const data = await backendRes.text();
+      return NextResponse.json({ message: data }, { status: 200 });
+    } else {
+      const data = await backendRes.text();
+      return NextResponse.json({ error: data }, { status: backendRes.status });
+    }
   } catch (error) {
     return NextResponse.json({ error: "Failed to add IP address" }, { status: 500 });
   }
