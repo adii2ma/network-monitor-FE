@@ -8,6 +8,7 @@ export const Header = () => {
         { name: "My Network", href: "/" },
         { name: "Logs", href: "/logs" },
         { name: "Update", href: "/update" },
+        { name: "LAN", href: "/broadband" },
     ];
     return (
         <header className="bg-white shadow-md py-4 px-8 mb-6">
