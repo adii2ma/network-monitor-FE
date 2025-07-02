@@ -304,6 +304,37 @@ function BroadbandFlowInner() {
     }
   }, [isPlacementMode, nodeCounter, setNodes, areas]);
 
+  // Delete node function
+  const deleteNode = useCallback(async (ip: string) => {
+    try {
+      // Remove the node from the UI immediately
+      setNodes((nds) => {
+        const updatedNodes = nds.filter(node => {
+          if (node.type === 'ip' && node.data?.ip === ip) {
+            return false;
+          }
+          return true;
+        });
+        saveToStorage(NODES_STORAGE_KEY, updatedNodes);
+        return updatedNodes;
+      });
+
+      // Refresh device data from backend to ensure sync
+      setTimeout(async () => {
+        const deviceNodes = await fetchDeviceData();
+        setNodes((currentNodes) => {
+          const nonDeviceNodes = currentNodes.filter(node => node.type !== 'ip');
+          const updatedNodes = [...nonDeviceNodes, ...deviceNodes] as Node[];
+          saveToStorage(NODES_STORAGE_KEY, updatedNodes);
+          return updatedNodes;
+        });
+      }, 500);
+      
+    } catch (error) {
+      console.error('Failed to delete device:', error);
+    }
+  }, [setNodes]);
+
   const handleToggleAreas = useCallback(() => {
     setShowAreas(prev => !prev);
   }, []);
@@ -460,6 +491,7 @@ function BroadbandFlowInner() {
 
       <ControlPanel
         onAddNode={addNewNode}
+        onDeleteNode={deleteNode}
         showAreas={showAreas}
         onToggleAreas={handleToggleAreas}
         onResetLayout={handleResetLayout}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
 interface ControlPanelProps {
-  onAddNode: (nodeData: {   ip: string; name: string; location: string; status: 'online' | 'offline' }) => void;
+  onAddNode: (nodeData: { ip: string; name: string; location: string; status: 'online' | 'offline' }) => void;
+  onDeleteNode?: (ip: string) => void;
   showAreas: boolean;
   onToggleAreas: () => void;
   onResetLayout?: () => void;
@@ -27,6 +28,7 @@ const areaInfo = [
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ 
   onAddNode, 
+  onDeleteNode,
   showAreas, 
   onToggleAreas, 
   onResetLayout, 
@@ -38,14 +40,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [label, setLabel] = useState('');
   const [ip, setIp] = useState('');
   const [name, setName] = useState('');
+  const [deleteIp, setDeleteIp] = useState('');
   const [location, setLocation] = useState<string>('PGCIL');
   const [status, setStatus] = useState<'online' | 'offline'>('online');
 
   const handleAddNode = () => {
-    if (  ip.trim()) {
-      const deviceName = name.trim()  ;
+    if (ip.trim()) {
+      const deviceName = name.trim();
       onAddNode({
-        
         ip: ip.trim(),
         name: deviceName,
         location,
@@ -54,6 +56,33 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       setLabel('');
       setIp('');
       setName('');
+    }
+  };
+
+  const handleDeleteNode = async () => {
+    if (!deleteIp.trim()) return;
+    
+    try {
+      const res = await fetch(`/api/delete?ip=${encodeURIComponent(deleteIp.trim())}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      if (res.ok) {
+        // Call the onDeleteNode callback if provided
+        if (onDeleteNode) {
+          onDeleteNode(deleteIp.trim());
+        }
+        setDeleteIp('');
+        // You could add a success message here if needed
+      } else {
+        const data = await res.json();
+        console.error('Delete failed:', data.error);
+        // You could add error handling UI here
+      }
+    } catch (error) {
+      console.error('Network error during delete:', error);
+      // You could add error handling UI here
     }
   };
 
@@ -89,8 +118,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </h4>
             
             <div className="space-y-3">
-               
-              
               <input
                 type="text"
                 placeholder="IP Address"
@@ -117,13 +144,37 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 ))}
               </select>
               
-              
               <button
                 onClick={handleAddNode}
                 disabled={!ip.trim()}
                 className="w-full py-2 px-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Device
+              </button>
+            </div>
+          </div>
+
+          {/* Delete Device Section */}
+          <div className="mb-4">
+            <h4 className="text-sm font-semibold mb-3 text-white">
+              Delete Device
+            </h4>
+            
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="IP Address to delete"
+                value={deleteIp}
+                onChange={(e) => setDeleteIp(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              
+              <button
+                onClick={handleDeleteNode}
+                disabled={!deleteIp.trim()}
+                className="w-full py-2 px-3 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Delete Device
               </button>
             </div>
           </div>

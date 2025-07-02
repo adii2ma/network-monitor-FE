@@ -106,6 +106,7 @@ export const initialAreas: Area[] = [
     width: 500, // Large area for 10 IPs
     height: 350,
   },
+   
 ];
 
 export const initialNodes: Node[] = [
