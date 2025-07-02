@@ -166,7 +166,7 @@ function BroadbandFlowInner() {
   const [isPlacementMode, setIsPlacementMode] = useState(false);
   const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
   const [pendingNodeData, setPendingNodeData] = useState<{
-    label: string; 
+     
     ip: string; 
     name: string;
     location: string; 
@@ -249,7 +249,7 @@ function BroadbandFlowInner() {
   }, [isPlacementMode, pendingNodeData, nodeCounter, setNodes]);
 
   // Enhanced addNewNode to support both automatic and manual placement
-  const addNewNode = useCallback(async (nodeData: { label: string; ip: string; name: string; location: string; status: 'online' | 'offline' }) => {
+  const addNewNode = useCallback(async (nodeData: {  ip: string; name: string; location: string; status: 'online' | 'offline' }) => {
     if (isPlacementMode) {
       setPendingNodeData(nodeData);
       return;

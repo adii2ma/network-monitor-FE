@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface ControlPanelProps {
-  onAddNode: (nodeData: { label: string; ip: string; name: string; location: string; status: 'online' | 'offline' }) => void;
+  onAddNode: (nodeData: {   ip: string; name: string; location: string; status: 'online' | 'offline' }) => void;
   showAreas: boolean;
   onToggleAreas: () => void;
   onResetLayout?: () => void;
@@ -12,13 +12,17 @@ interface ControlPanelProps {
 }
 
 const areaInfo = [
-  { color: 'text-blue-600', icon: '🔵', name: 'VLAN-1' },
-  { color: 'text-red-600', icon: '🔴', name: 'VLAN 100' },
-  { color: 'text-green-600', icon: '🟢', name: 'VLAN 200' },
-  { color: 'text-yellow-600', icon: '🟤', name: 'VLAN 300' },
-  { color: 'text-purple-600', icon: '🟣', name: 'VLAN 400' },
-  { color: 'text-orange-600', icon: '🟠', name: 'VLAN 500' },
-  { color: 'text-pink-600', icon: '🩷', name: 'VLAN 600' },
+  { color: 'text-blue-600', icon: '🔵', name: 'PGCIL' },
+  { color: 'text-red-600', icon: '🔴', name: 'Sophos' },
+  { color: 'text-green-600', icon: '🟢', name: 'Hop Bung' },
+  { color: 'text-yellow-600', icon: '🟤', name: 'SSC Build' },
+  { color: 'text-purple-600', icon: '🟣', name: 'Plant Area' },
+  { color: 'text-orange-600', icon: '🟠', name: 'IT Dept' },
+  { color: 'text-pink-600', icon: '🩷', name: 'Admin Build' },
+  { color: 'text-emerald-600', icon: '�', name: 'Sankalp #2' },
+  { color: 'text-sky-600', icon: '�', name: 'Township' },
+  { color: 'text-amber-600', icon: '�', name: 'ET-Hostel' },
+  { color: 'text-indigo-600', icon: '�', name: 'RLI Office' },
 ];
 
 const ControlPanel: React.FC<ControlPanelProps> = ({ 
@@ -34,14 +38,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [label, setLabel] = useState('');
   const [ip, setIp] = useState('');
   const [name, setName] = useState('');
-  const [location, setLocation] = useState<string>('VLAN-1');
+  const [location, setLocation] = useState<string>('PGCIL');
   const [status, setStatus] = useState<'online' | 'offline'>('online');
 
   const handleAddNode = () => {
-    if (label.trim() && ip.trim()) {
-      const deviceName = name.trim() || label.trim();
+    if (  ip.trim()) {
+      const deviceName = name.trim()  ;
       onAddNode({
-        label: deviceName,
+        
         ip: ip.trim(),
         name: deviceName,
         location,
@@ -85,13 +89,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </h4>
             
             <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Device Label"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+               
               
               <input
                 type="text"
@@ -119,18 +117,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 ))}
               </select>
               
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as 'online' | 'offline')}
-                className="w-full px-3 py-2 text-sm border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="online">Online</option>
-                <option value="offline">Offline</option>
-              </select>
               
               <button
                 onClick={handleAddNode}
-                disabled={!label.trim() || !ip.trim()}
+                disabled={!ip.trim()}
                 className="w-full py-2 px-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Device
@@ -139,7 +129,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           <div className="mb-4">
-            <h4 className="text-sm font-semibold mb-3 text-white">VLAN Areas</h4>
+            <h4 className="text-sm font-semibold mb-3 text-white">Areas</h4>
             <div className="grid grid-cols-1 gap-2 text-sm">
               {areaInfo.map((area) => (
                 <div key={area.name} className={`${area.color} flex items-center gap-2 p-2 rounded-lg bg-gray-800`}>  

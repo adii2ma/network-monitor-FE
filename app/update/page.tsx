@@ -102,7 +102,7 @@ export default function UpdatePage() {
             <button
               onClick={() => handleAction("delete")}
               disabled={loading || !ip}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+              className="bg-red-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-900 transition-colors disabled:opacity-50"
             >
               Remove Device
             </button>
