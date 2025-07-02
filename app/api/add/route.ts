@@ -5,15 +5,17 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const ip = searchParams.get('ip');
     const location = searchParams.get('location');
-    
+    const name = searchParams.get('name');
     if (!ip) {
       return NextResponse.json({ error: "IP address is required" }, { status: 400 });
     }
     if (!location) {
       return NextResponse.json({ error: "Location is required" }, { status: 400 });
     }
-    
-    const backendRes = await fetch(`http://localhost:8080/add?ip=${encodeURIComponent(ip)}&location=${encodeURIComponent(location)}`, {
+    if (!name) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+    const backendRes = await fetch(`http://localhost:8080/add?ip=${encodeURIComponent(ip)}&location=${encodeURIComponent(location)}&name=${encodeURIComponent(name)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });

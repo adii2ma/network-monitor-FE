@@ -4,6 +4,7 @@ import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 interface IPNodeData {
   label: string;
   ip: string;
+  name: string;
   location: string;
   status: 'online' | 'offline';
 }
@@ -19,8 +20,9 @@ const IPNode = memo(({ data }: NodeProps) => {
   const [label, setLabel] = useState(nodeData.label);
 
   const isOnline = nodeData.status === 'online';
-  const bgColor = isOnline ? 'bg-green-500' : 'bg-red-500';
-  const borderColor = isOnline ? 'border-green-600' : 'border-red-600';
+  const bgColor = isOnline ? 'bg-emerald-500' : 'bg-rose-500';
+  const borderColor = isOnline ? 'border-emerald-400' : 'border-rose-400';
+  const shadowColor = isOnline ? 'shadow-emerald-200' : 'shadow-rose-200';
 
   const handleDoubleClick = () => {
     setIsEditing(true);
@@ -39,97 +41,101 @@ const IPNode = memo(({ data }: NodeProps) => {
 
   return (
     <div 
-      className={`px-4 py-2 rounded-lg border-2 ${bgColor} ${borderColor} text-white shadow-lg min-w-[120px] cursor-pointer transition-all duration-200 hover:shadow-xl relative`}
+      className={`px-3 py-2 rounded-xl border-2 ${bgColor} ${borderColor} text-white shadow-lg ${shadowColor} min-w-[100px] max-w-[120px] cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-105 relative group`}
       onDoubleClick={handleDoubleClick}
+      title={`IP: ${nodeData.ip}\nLocation: ${nodeData.location}\nName: ${nodeData.name}\nStatus: ${nodeData.status}`}
     >
-      {/* Multiple handles for better connectivity */}
+      {/* Connection handles */}
       <Handle
         type="target"
         position={Position.Top}
-        id="target-top"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
+        className="w-2 h-2 bg-white border-2 border-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <Handle
         type="target"
         position={Position.Left}
-        id="target-left"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
+        className="w-2 h-2 bg-white border-2 border-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <Handle
         type="target"
         position={Position.Right}
-        id="target-right"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
+        className="w-2 h-2 bg-white border-2 border-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        id="source-bottom"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
-      />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="source-left"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="source-right"
-        className="w-3 h-3 bg-gray-400 border-2 border-white"
+        className="w-2 h-2 bg-white border-2 border-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
       />
       
       <div className="text-center">
+        {/* Status indicator */}
+        <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${isOnline ? 'bg-white' : 'bg-gray-300'} shadow-sm`} />
+        
+        {/* Node content */}
         {isEditing ? (
           <input
+            type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onKeyDown={handleKeyPress}
-            onBlur={() => {
-              setIsEditing(false);
-              (data as unknown as IPNodeData).label = label;
-            }}
-            className="bg-transparent border-none outline-none text-inherit font-semibold text-center w-full text-sm"
+            onBlur={() => setIsEditing(false)}
+            className="bg-transparent text-white text-xs font-medium text-center outline-none border-b border-white/50 w-full"
             autoFocus
           />
         ) : (
-          <div className="text-sm font-semibold">{nodeData.label}</div>
+          <div className="text-xs font-medium truncate">
+            {nodeData.name || nodeData.label}
+          </div>
         )}
-        <div className="text-xs opacity-90">{nodeData.ip}</div>
-        <div className="text-xs opacity-75">{nodeData.location}</div>
-        <div className="text-xs opacity-75 capitalize">{nodeData.status}</div>
+      </div>
+
+      {/* Tooltip on hover */}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+        <div className="font-semibold">{nodeData.name}</div>
+        <div>IP: {nodeData.ip}</div>
+        <div>Location: {nodeData.location}</div>
+        <div className={`font-medium ${isOnline ? 'text-green-400' : 'text-red-400'}`}>
+          {isOnline ? 'Online' : 'Offline'}
+        </div>
+        {/* Arrow */}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
       </div>
     </div>
   );
 });
 
-const AreaNode = memo(({ data, selected }: NodeProps) => {
+const AreaNode = memo(({ data }: NodeProps) => {
   const nodeData = data as unknown as AreaNodeData;
 
   return (
     <div 
-      className="w-full h-full rounded-lg border-4 border-dashed flex items-start justify-start p-2 pointer-events-none"
+      className="w-full h-full rounded-2xl border-4 border-dashed flex items-start justify-start p-4 relative overflow-hidden"
       style={{
-        backgroundColor: `${nodeData.color}40`,
+        backgroundColor: `${nodeData.color}15`,
         borderColor: `${nodeData.color}`,
-        zIndex: -1, // Put areas behind other nodes
       }}
     >
       <NodeResizer
         color={nodeData.color}
-        isVisible={selected}
-        minWidth={200}
-        minHeight={150}
+        isVisible={true}
+        minWidth={300}
+        minHeight={200}
+        handleStyle={{
+          backgroundColor: nodeData.color,
+          border: '2px solid white',
+          borderRadius: '50%',
+          width: '12px',
+          height: '12px',
+        }}
       />
-      <span
-        className="text-white px-3 py-1 rounded-md text-sm font-bold shadow-lg pointer-events-auto"
+      <div
+        className="text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg border-2 border-white/20"
         style={{
           backgroundColor: nodeData.color,
         }}
       >
         {nodeData.name}
-      </span>
+      </div>
     </div>
   );
 });

@@ -9,7 +9,6 @@ import {
   BackgroundVariant,
   Controls,
   MiniMap,
-  Panel,
   Node,
   Edge,
   ReactFlowProvider,
@@ -67,15 +66,12 @@ const fetchDeviceData = async () => {
     
     console.log('Fetched device data:', deviceData);
     
-    // If no devices or empty response, return empty array
     if (!deviceData || Object.keys(deviceData).length === 0) {
       console.log('No devices found from API');
       return [];
     }
     
-    // Convert the backend data structure to nodes
     const devices = Object.entries(deviceData).map(([ip, data]: [string, any], index: number) => {
-      // Position nodes within their respective areas or in a general area
       const location = data.location && data.location !== 'Location not set' ? data.location : null;
       const area = location ? initialAreas.find(a => a.name === location) : null;
       
@@ -83,7 +79,6 @@ const fetchDeviceData = async () => {
       
       let x, y;
       if (area) {
-        // Position within the specific area
         const devicesInSameArea = Object.entries(deviceData).filter(([_, d]: [string, any]) => 
           d.location === location
         );
@@ -91,17 +86,19 @@ const fetchDeviceData = async () => {
         x = area.x + 50 + (areaIndex % 4) * 140;
         y = area.y + 80 + Math.floor(areaIndex / 4) * 70;
       } else {
-        // Position outside defined areas for devices without location
         x = 600 + (index % 3) * 150;
         y = 50 + Math.floor(index / 3) * 80;
       }
+      
+      const deviceName = data.name && data.name !== 'Name not set' ? data.name : ip;
       
       const node = {
         id: `device-${ip}`,
         type: 'ip',
         data: {
-          label: ip, // Use IP as label for now
+          label: deviceName,
           ip: ip,
+          name: data.name || ip,
           location: location || 'Unknown',
           status: data.online === 'true' ? 'online' : 'offline'
         },
@@ -116,7 +113,7 @@ const fetchDeviceData = async () => {
     return devices;
   } catch (error) {
     console.error('Failed to fetch device data:', error);
-    return []; // Return empty array instead of initial nodes
+    return [];
   }
 };
 
@@ -149,7 +146,6 @@ export default function BroadbandFlow() {
 }
 
 function BroadbandFlowInner() {
-  // Initialize with empty array but proper Node type
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [areas, setAreas] = useState<Area[]>(initialAreas);
@@ -157,9 +153,11 @@ function BroadbandFlowInner() {
   const [nodeCounter, setNodeCounter] = useState(20);
   const [loading, setLoading] = useState(true);
   const [isPlacementMode, setIsPlacementMode] = useState(false);
+  const [isControlPanelOpen, setIsControlPanelOpen] = useState(false);
   const [pendingNodeData, setPendingNodeData] = useState<{
     label: string; 
     ip: string; 
+    name: string;
     location: string; 
     status: 'online' | 'offline'
   } | null>(null);
@@ -179,13 +177,12 @@ function BroadbandFlowInner() {
   const handleNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
       onNodesChange(changes);
-      // Save nodes after changes to capture position, style, and size updates
       setTimeout(() => {
         setNodes((currentNodes) => {
           saveToStorage(NODES_STORAGE_KEY, currentNodes);
           return currentNodes;
         });
-      }, 50); // Reduced timeout for faster persistence
+      }, 50);
     },
     [onNodesChange, setNodes],
   );
@@ -194,7 +191,6 @@ function BroadbandFlowInner() {
   const handleEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
       onEdgesChange(changes);
-      // Save edges after changes
       setTimeout(() => {
         setEdges((currentEdges) => {
           saveToStorage(EDGES_STORAGE_KEY, currentEdges);
@@ -258,17 +254,14 @@ function BroadbandFlowInner() {
   }, [isPlacementMode, pendingNodeData]);
 
   // Enhanced addNewNode to support both automatic and manual placement
-  const addNewNode = useCallback(async (nodeData: { label: string; ip: string; location: string; status: 'online' | 'offline' }) => {
+  const addNewNode = useCallback(async (nodeData: { label: string; ip: string; name: string; location: string; status: 'online' | 'offline' }) => {
     if (isPlacementMode) {
-      // Store the node data for manual placement
       setPendingNodeData(nodeData);
       return;
     }
 
-    // Automatic placement (existing logic)
     try {
-      // Add to backend first
-      const response = await fetch(`/api/add?ip=${encodeURIComponent(nodeData.ip)}&location=${encodeURIComponent(nodeData.location)}`, {
+      const response = await fetch(`/api/add?ip=${encodeURIComponent(nodeData.ip)}&location=${encodeURIComponent(nodeData.location)}&name=${encodeURIComponent(nodeData.name)}`, {
         method: 'POST',
       });
       
@@ -278,10 +271,8 @@ function BroadbandFlowInner() {
         return;
       }
       
-      // If backend succeeds, add to frontend
       const newId = `node-${nodeCounter}`;
       
-      // Position the node in the correct area
       const targetArea = areas.find(area => area.name === nodeData.location);
       const x = targetArea ? targetArea.x + 50 + Math.random() * (targetArea.width - 100) : 200;
       const y = targetArea ? targetArea.y + 80 + Math.random() * (targetArea.height - 100) : 200;
@@ -300,7 +291,6 @@ function BroadbandFlowInner() {
       });
       setNodeCounter(prev => prev + 1);
       
-      // Refresh data to get the latest from backend
       setTimeout(() => {
         const loadDeviceData = async () => {
           const deviceNodes = await fetchDeviceData();
@@ -324,16 +314,13 @@ function BroadbandFlowInner() {
   }, []);
 
   const handleResetLayout = useCallback(() => {
-    // Clear localStorage
     localStorage.removeItem(NODES_STORAGE_KEY);
     localStorage.removeItem(EDGES_STORAGE_KEY);
     
-    // Reset to default layout
     setEdges([]);
     const areaNodes = showAreas ? createAreaNodes() : [];
     setNodes(areaNodes as Node[]);
     
-    // Reload device data
     const loadDeviceData = async () => {
       const deviceNodes = await fetchDeviceData();
       const areaNodes = showAreas ? createAreaNodes() : [];
@@ -345,17 +332,17 @@ function BroadbandFlowInner() {
   const getMiniMapNodeColor = (n: Node) => {
     if (n.type === 'ip') {
       const nodeData = n.data as { status?: string };
-      return nodeData.status === 'online' ? '#dcfce7' : '#fee2e2';
+      return nodeData.status === 'online' ? '#10b981' : '#ef4444';
     }
-    return '#f3f4f6';
+    return '#6b7280';
   };
 
   const getMiniMapNodeStroke = (n: Node) => {
     if (n.type === 'ip') {
       const nodeData = n.data as { status?: string };
-      return nodeData.status === 'online' ? '#16a34a' : '#dc2626';
+      return nodeData.status === 'online' ? '#059669' : '#dc2626';
     }
-    return '#6b7280';
+    return '#374151';
   };
 
   // Load real device data on component mount
@@ -363,7 +350,6 @@ function BroadbandFlowInner() {
     const loadDeviceData = async () => {
       setLoading(true);
       
-      // Load persisted nodes and edges first
       const savedNodes = loadFromStorage(NODES_STORAGE_KEY);
       const savedEdges = loadFromStorage(EDGES_STORAGE_KEY);
       
@@ -371,25 +357,19 @@ function BroadbandFlowInner() {
         setEdges(savedEdges);
       }
       
-      // Fetch fresh device data
       const deviceNodes = await fetchDeviceData();
       const areaNodes = showAreas ? createAreaNodes() : [];
       
-      // If we have saved nodes, merge them with fresh device data
       if (savedNodes && savedNodes.length > 0) {
-        // Keep saved area nodes with their position and style (size) intact
         const savedAreaNodes = savedNodes.filter((node: Node) => node.type === 'area');
         const updatedAreaNodes = areaNodes.map(newAreaNode => {
           const savedAreaNode = savedAreaNodes.find((saved: Node) => saved.id === newAreaNode.id);
-          // Preserve position, style, and any other properties from saved node
           return savedAreaNode ? { ...newAreaNode, ...savedAreaNode } : newAreaNode;
         });
         
-        // Keep manually placed nodes and other non-device nodes
         const savedOtherNodes = savedNodes.filter((node: Node) => node.type !== 'area' && node.type !== 'ip');
         setNodes([...updatedAreaNodes, ...deviceNodes, ...savedOtherNodes] as Node[]);
       } else {
-        // No saved data, use fresh data
         setNodes([...areaNodes, ...deviceNodes] as Node[]);
       }
       
@@ -398,7 +378,6 @@ function BroadbandFlowInner() {
     
     loadDeviceData();
     
-    // Set up periodic refresh every 30 seconds (only for device data)
     const interval = setInterval(async () => {
       const deviceNodes = await fetchDeviceData();
       setNodes((currentNodes) => {
@@ -419,31 +398,8 @@ function BroadbandFlowInner() {
     });
   }, [showAreas, setNodes]);
 
-  // Load initial state from localStorage
-  useEffect(() => {
-    const storedNodes = loadFromStorage(NODES_STORAGE_KEY);
-    const storedEdges = loadFromStorage(EDGES_STORAGE_KEY);
-    
-    if (storedNodes) {
-      setNodes(storedNodes);
-    }
-    if (storedEdges) {
-      setEdges(storedEdges);
-    }
-  }, []);
-
-  // Save nodes and edges to localStorage on change
-  useEffect(() => {
-    saveToStorage(NODES_STORAGE_KEY, nodes);
-  }, [nodes]);
-
-  useEffect(() => {
-    saveToStorage(EDGES_STORAGE_KEY, edges);
-  }, [edges]);
-
   // Handle edge selection for better visibility
   const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge) => {
-    // This will select the edge, making it more visible for deletion
     console.log('Edge clicked:', edge);
   }, []);
 
@@ -451,7 +407,7 @@ function BroadbandFlowInner() {
   const edgeOptions = {
     animated: false,
     style: { 
-      strokeWidth: 3, 
+      strokeWidth: 2, 
       stroke: '#3b82f6',
     },
     type: 'smoothstep',
@@ -460,13 +416,13 @@ function BroadbandFlowInner() {
   return (
     <div className="w-screen h-screen relative bg-gray-50">
       {loading && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-xl shadow-lg">
           Loading network data...
         </div>
       )}
       
       {isPlacementMode && (
-        <div className="absolute top-4 left-4 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+        <div className="absolute top-4 left-4 z-50 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg">
           {pendingNodeData ? 'Click anywhere to place the node' : 'Fill out the form and click to place manually'}
         </div>
       )}
@@ -494,30 +450,30 @@ function BroadbandFlowInner() {
           variant={BackgroundVariant.Dots} 
           gap={20} 
           size={1} 
-          color="#00040a"
+          color="#e5e7eb"
           className="bg-gray-50"
         />
         
-        <Controls className="bg-white border border-gray-200 rounded-lg shadow-lg" />
+        <Controls className="bg-white border border-gray-200 rounded-xl shadow-lg" />
         
         <MiniMap 
           nodeStrokeColor={getMiniMapNodeStroke}
           nodeColor={getMiniMapNodeColor}
           maskColor="rgba(0, 0, 0, 0.1)"
-          className="bg-white border border-gray-200 rounded-lg shadow-lg"
+          className="bg-white border border-gray-200 rounded-xl shadow-lg"
         />
-        
-        <Panel position="top-right" className="m-4">
-          <ControlPanel
-            onAddNode={addNewNode}
-            showAreas={showAreas}
-            onToggleAreas={handleToggleAreas}
-            onResetLayout={handleResetLayout}
-            onTogglePlacementMode={handleTogglePlacementMode}
-            isPlacementMode={isPlacementMode}
-          />
-        </Panel>
       </ReactFlow>
+
+      <ControlPanel
+        onAddNode={addNewNode}
+        showAreas={showAreas}
+        onToggleAreas={handleToggleAreas}
+        onResetLayout={handleResetLayout}
+        onTogglePlacementMode={handleTogglePlacementMode}
+        isPlacementMode={isPlacementMode}
+        isOpen={isControlPanelOpen}
+        onToggle={() => setIsControlPanelOpen(!isControlPanelOpen)}
+      />
     </div>
   );
 }
