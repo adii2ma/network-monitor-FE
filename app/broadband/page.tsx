@@ -12,9 +12,9 @@ import {
   Node,
   Edge,
   ReactFlowProvider,
+  Connection,
   OnNodesChange,
   OnEdgesChange,
-  Connection,
   NodeChange,
   EdgeChange,
 } from '@xyflow/react';
@@ -23,14 +23,14 @@ import '@xyflow/react/dist/style.css';
 // Components
 import ControlPanel from '../components/ControlPanel';
 import { nodeTypes } from '../components/NodeTypes';
-import { initialAreas, initialNodes, initialEdges } from '../components/initialData';
+import { initialAreas } from '../components/initialData';
 
 // Local storage keys
 const NODES_STORAGE_KEY = 'network-monitor-nodes';
 const EDGES_STORAGE_KEY = 'network-monitor-edges';
 
 // Utility functions for persistence
-const saveToStorage = (key: string, data: any) => {
+const saveToStorage = (key: string, data: Node[] | Edge[]) => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
@@ -48,6 +48,17 @@ const loadFromStorage = (key: string) => {
   }
 };
 
+// Types
+interface DeviceData {
+  online: string;
+  location?: string;
+  name?: string;
+}
+
+interface DeviceStatusResponse {
+  [ip: string]: DeviceData;
+}
+
 export interface Area {
   id: string;
   name: string;
@@ -62,7 +73,7 @@ export interface Area {
 const fetchDeviceData = async () => {
   try {
     const response = await fetch('/api/status');
-    const deviceData = await response.json();
+    const deviceData: DeviceStatusResponse = await response.json();
     
     console.log('Fetched device data:', deviceData);
     
@@ -71,7 +82,7 @@ const fetchDeviceData = async () => {
       return [];
     }
     
-    const devices = Object.entries(deviceData).map(([ip, data]: [string, any], index: number) => {
+    const devices = Object.entries(deviceData).map(([ip, data], index: number) => {
       const location = data.location && data.location !== 'Location not set' ? data.location : null;
       const area = location ? initialAreas.find(a => a.name === location) : null;
       
@@ -79,7 +90,7 @@ const fetchDeviceData = async () => {
       
       let x, y;
       if (area) {
-        const devicesInSameArea = Object.entries(deviceData).filter(([_, d]: [string, any]) => 
+        const devicesInSameArea = Object.entries(deviceData).filter(([, d]) => 
           d.location === location
         );
         const areaIndex = devicesInSameArea.findIndex(([deviceIp]) => deviceIp === ip);
@@ -148,7 +159,7 @@ export default function BroadbandFlow() {
 function BroadbandFlowInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-  const [areas, setAreas] = useState<Area[]>(initialAreas);
+  const [areas] = useState<Area[]>(initialAreas);
   const [showAreas, setShowAreas] = useState(true);
   const [nodeCounter, setNodeCounter] = useState(20);
   const [loading, setLoading] = useState(true);
@@ -161,7 +172,6 @@ function BroadbandFlowInner() {
     location: string; 
     status: 'online' | 'offline'
   } | null>(null);
-  const [previewPosition, setPreviewPosition] = useState<{ x: number; y: number } | null>(null);
 
   // Enhanced onConnect with persistence
   const onConnect = useCallback(
@@ -205,7 +215,6 @@ function BroadbandFlowInner() {
   const handleTogglePlacementMode = useCallback(() => {
     setIsPlacementMode(prev => !prev);
     setPendingNodeData(null);
-    setPreviewPosition(null);
   }, []);
 
   // Handle canvas click for manual placement
@@ -234,24 +243,10 @@ function BroadbandFlowInner() {
         });
         setNodeCounter(prev => prev + 1);
         setPendingNodeData(null);
-        setPreviewPosition(null);
         setIsPlacementMode(false);
       }
     }
   }, [isPlacementMode, pendingNodeData, nodeCounter, setNodes]);
-
-  // Handle mouse movement for placement preview
-  const handlePaneMouseMove = useCallback((event: React.MouseEvent) => {
-    if (isPlacementMode && pendingNodeData) {
-      const reactFlowBounds = (event.target as Element).closest('.react-flow')?.getBoundingClientRect();
-      if (reactFlowBounds) {
-        setPreviewPosition({
-          x: event.clientX - reactFlowBounds.left,
-          y: event.clientY - reactFlowBounds.top,
-        });
-      }
-    }
-  }, [isPlacementMode, pendingNodeData]);
 
   // Enhanced addNewNode to support both automatic and manual placement
   const addNewNode = useCallback(async (nodeData: { label: string; ip: string; name: string; location: string; status: 'online' | 'offline' }) => {
@@ -444,7 +439,6 @@ function BroadbandFlowInner() {
         connectionLineStyle={{ strokeWidth: 2, stroke: '#3b82f6' }}
         className={`bg-white ${isPlacementMode ? 'cursor-crosshair' : ''}`}
         onPaneClick={handlePaneClick}
-        onPaneMouseMove={handlePaneMouseMove}
       >
         <Background 
           variant={BackgroundVariant.Dots} 

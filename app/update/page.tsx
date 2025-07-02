@@ -53,7 +53,7 @@ export default function UpdatePage() {
         const data = await res.json();
         setMessage(data.error || "Something went wrong");
       }
-    } catch (err) {
+    } catch {
       setMessage("Network error");
     }
     setLoading(false);

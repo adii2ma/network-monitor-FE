@@ -27,7 +27,7 @@ export default function Home() {
       } else {
         setError("Failed to fetch device status")
       }
-    } catch (err) {
+    } catch {
       setError("Network error")
     } finally {
       setLoading(false)

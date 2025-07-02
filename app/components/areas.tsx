@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
+import { NodeProps, NodeResizer } from '@xyflow/react';
 
 export interface Area {
   id: string;

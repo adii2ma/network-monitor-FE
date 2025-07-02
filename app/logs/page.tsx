@@ -20,7 +20,7 @@ export default function LogsPage() {
       } else {
         setError("Failed to fetch logs");
       }
-    } catch (err) {
+    } catch {
       setError("Network error");
     } finally {
       setLoading(false);

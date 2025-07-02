@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const backendRes = await fetch("http://localhost:8080/status", {
       method: "GET",
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     
     const data = await backendRes.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to fetch status" }, { status: 500 });
   }
 } 

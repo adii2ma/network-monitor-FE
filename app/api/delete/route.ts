@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       const data = await backendRes.text();
       return NextResponse.json({ error: data }, { status: backendRes.status });
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to delete IP address" }, { status: 500 });
   }
 } 
