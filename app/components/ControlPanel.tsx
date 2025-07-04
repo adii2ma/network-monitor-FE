@@ -37,12 +37,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   isOpen,
   onToggle
 }) => {
-  const [label, setLabel] = useState('');
   const [ip, setIp] = useState('');
   const [name, setName] = useState('');
   const [deleteIp, setDeleteIp] = useState('');
   const [location, setLocation] = useState<string>('PGCIL');
-  const [status, setStatus] = useState<'online' | 'offline'>('online');
 
   const handleAddNode = () => {
     if (ip.trim()) {
@@ -51,9 +49,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
         ip: ip.trim(),
         name: deviceName,
         location,
-        status
+        status: 'online'
       });
-      setLabel('');
       setIp('');
       setName('');
     }
