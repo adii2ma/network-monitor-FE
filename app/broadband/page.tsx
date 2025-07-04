@@ -94,9 +94,40 @@ const fetchDeviceData = async () => {
           d.location === location
         );
         const areaIndex = devicesInSameArea.findIndex(([deviceIp]) => deviceIp === ip);
-        x = area.x + 50 + (areaIndex % 4) * 140;
-        y = area.y + 80 + Math.floor(areaIndex / 4) * 70;
+        
+        // Calculate optimal nodes per row based on area width
+        const nodeWidth = 120; // Approximate width of each node including spacing
+        const areaPadding = 100; // Left and right padding within area
+        const availableWidth = area.width - areaPadding;
+        const nodesPerRow = Math.max(1, Math.floor(availableWidth / nodeWidth));
+        
+        // Calculate position within the area
+        const row = Math.floor(areaIndex / nodesPerRow);
+        const col = areaIndex % nodesPerRow;
+        
+        // Position nodes with proper spacing and ensure they stay within area bounds
+        const startX = area.x + 50; // Left padding
+        const startY = area.y + 80; // Top padding for area title
+        const spacingX = Math.min(nodeWidth, availableWidth / nodesPerRow);
+        const spacingY = 70; // Vertical spacing between rows
+        
+        x = startX + col * spacingX;
+        y = startY + row * spacingY;
+        
+        // Ensure node doesn't exceed area boundaries
+        const maxX = area.x + area.width - 100; // Right boundary with padding
+        const maxY = area.y + area.height - 60; // Bottom boundary with padding
+        
+        if (x > maxX) {
+          x = maxX;
+        }
+        if (y > maxY) {
+          y = maxY;
+        }
+        
       } else {
+        // For devices without a specific area
+        // For devices without a specific area
         x = 600 + (index % 3) * 150;
         y = 50 + Math.floor(index / 3) * 80;
       }
@@ -269,8 +300,44 @@ function BroadbandFlowInner() {
       const newId = `node-${nodeCounter}`;
       
       const targetArea = areas.find(area => area.name === nodeData.location);
-      const x = targetArea ? targetArea.x + 50 + Math.random() * (targetArea.width - 100) : 200;
-      const y = targetArea ? targetArea.y + 80 + Math.random() * (targetArea.height - 100) : 200;
+      let x, y;
+      
+      if (targetArea) {
+        // Use similar logic as fetchDeviceData for consistent positioning
+        // For new nodes, place them in the next available spot
+        const existingNodesInArea = nodes.filter(node => 
+          node.type === 'ip' && node.data?.location === nodeData.location
+        ).length;
+        
+        // Calculate optimal nodes per row based on area width
+        const nodeWidth = 120;
+        const areaPadding = 100;
+        const availableWidth = targetArea.width - areaPadding;
+        const nodesPerRow = Math.max(1, Math.floor(availableWidth / nodeWidth));
+        
+        // Calculate position for the new node
+        const row = Math.floor(existingNodesInArea / nodesPerRow);
+        const col = existingNodesInArea % nodesPerRow;
+        
+        const startX = targetArea.x + 50;
+        const startY = targetArea.y + 80;
+        const spacingX = Math.min(nodeWidth, availableWidth / nodesPerRow);
+        const spacingY = 70;
+        
+        x = startX + col * spacingX;
+        y = startY + row * spacingY;
+        
+        // Ensure node doesn't exceed area boundaries
+        const maxX = targetArea.x + targetArea.width - 100;
+        const maxY = targetArea.y + targetArea.height - 60;
+        
+        if (x > maxX) x = maxX;
+        if (y > maxY) y = maxY;
+      } else {
+        // Default position for nodes without specific area
+        x = 200;
+        y = 200;
+      }
       
       const newNode: Node = {
         id: newId,
