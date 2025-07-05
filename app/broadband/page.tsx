@@ -457,7 +457,18 @@ function BroadbandFlowInner() {
         const savedAreaNodes = savedNodes.filter((node: Node) => node.type === 'area');
         const updatedAreaNodes = areaNodes.map(newAreaNode => {
           const savedAreaNode = savedAreaNodes.find((saved: Node) => saved.id === newAreaNode.id);
-          return savedAreaNode ? { ...newAreaNode, ...savedAreaNode } : newAreaNode;
+          if (savedAreaNode) {
+            // Use position from initialData.ts, but preserve any transform styles from user dragging
+            return {
+              ...newAreaNode, // This includes the updated position from initialData
+              style: {
+                ...newAreaNode.style, // Use new dimensions from initialData
+                // Only preserve transform if the user manually moved the area
+                ...(savedAreaNode.style && savedAreaNode.style.transform ? { transform: savedAreaNode.style.transform } : {})
+              }
+            };
+          }
+          return newAreaNode;
         });
         
         const savedOtherNodes = savedNodes.filter((node: Node) => node.type !== 'area' && node.type !== 'ip');

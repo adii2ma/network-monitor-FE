@@ -36,7 +36,7 @@ export const initialAreas: Area[] = [
     color: '#7c2d12', // Bold brown
     x: 780,
     y: 20,
-    width: 300, // Small area for 3 IPs
+    width: 400, // Increased width for better layout
     height: 250,
   },
   
@@ -56,16 +56,16 @@ export const initialAreas: Area[] = [
     color: '#ea580c', // Bold orange
     x: 540,
     y: 290,
-    width: 400, // Medium-large area for 7 IPs
+    width: 500, // Increased width for better layout
     height: 300,
   },
   {
     id: 'admin-build',
     name: 'Admin Build',
     color: '#be185d', // Bold pink
-    x: 960,
+    x: 1080,
     y: 290,
-    width: 450, // Large area for 8 IPs
+    width: 800, // Large area for 8 IPs
     height: 320,
   },
   
@@ -76,8 +76,8 @@ export const initialAreas: Area[] = [
     color: '#059669', // Bold emerald
     x: 20,
     y: 660,
-    width: 400, // Medium-large area for 7 IPs
-    height: 300,
+    width: 400, // Same width
+    height: 380, // Increased height (length)
   },
   {
     id: 'township',
@@ -94,8 +94,8 @@ export const initialAreas: Area[] = [
     color: '#7c2d12', // Bold amber
     x: 810,
     y: 660,
-    width: 320, // Medium area for 5 IPs
-    height: 260,
+    width: 400, // Increased width
+    height: 320, // Increased height
   },
   {
     id: 'rli-office',
@@ -106,6 +106,8 @@ export const initialAreas: Area[] = [
     width: 500, // Large area for 10 IPs
     height: 350,
   },
+  
+  
    
 ];
 
